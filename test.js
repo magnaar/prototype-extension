@@ -52,10 +52,11 @@ console.log(a._.methodCommon())
 console.log(b._.methodCommon())
 console.log(c._.methodCommon())
 
-console.log(c._.__extensions__())
-console.log(c.__.__extensions__())
+console.log(c._.__extensions__(true))
+console.log(c.__.__extensions__(true))
 console.log(c._.__extensions__().Ax.methodA(b))
-console.log(PrototypeExtension.__extensions__(c))
+console.log(PrototypeExtension.__extensions__(c).Bx.methodB(a))
+console.log(PrototypeExtension.__extensions__(c, true).x__.B.Bx.methodB(a))
 
 //console.log(a._.methodB())
 

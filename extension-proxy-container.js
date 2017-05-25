@@ -27,8 +27,6 @@ module.exports = class ExtensionProxyContainer
             .find(p => keys.includes(p))
         ))
             throw new Error(`"${this.prototype.constructor.name}" already has a "${key}" method`)
-        //console.log(this.proxies.map(p => Object.keys(p.extension)))
-        //if (Object.keys(extension).includes(k => keys.includes(k))))
         this.proxies.push({
             extension: extension,
             proxy: new Proxy(extension, { get: (target, name) => target[name] })

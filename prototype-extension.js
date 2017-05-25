@@ -13,8 +13,10 @@ class PrototypeExtension
             proxyContainers[accessorName] = {}
         if (! (container = proxyContainers[accessorName][prototypeName]))
             container = proxyContainers[accessorName][prototypeName] = new ExtensionProxyContainer(proxyContainers, accessorName, prototype)
-        if (! container.proxies.find(p => p.extension === PrototypeExtension))
-            container.addProxy(PrototypeExtension)
+        if (! proxyContainers[accessorName].Object)
+            proxyContainers[accessorName].Object = new ExtensionProxyContainer(proxyContainers, accessorName, Object)
+        if (! proxyContainers[accessorName].Object.proxies.find(p => p.extension === PrototypeExtension))
+            proxyContainers[accessorName].Object.addProxy(PrototypeExtension)
         if (extension !== PrototypeExtension)
             container.addProxy(extension)
         if (! prototype.hasOwnProperty(accessorName))
@@ -23,20 +25,26 @@ class PrototypeExtension
             )
     }
 
-    static __extensions__(self)
+    static __extensions__(self, complete=false)
     {
         const prototypes = PrototypeExtension.__protochain__(self)
-        const accessorNames = (this instanceof ExtensionProxyContainer
+        const accessorNames = this instanceof ExtensionProxyContainer
             ? [this.accessorName]
             : Object.keys(proxyContainers)
-        )
-        const extensions = {}
+        let extensions = {}
+        const filler = ! complete
+            ? (proxy) => { extensions[proxy.extension.name] = proxy.extension }
+            : (proxy, accessor, prototype) => {
+                extensions[accessor] || (extensions[accessor] = {})
+                extensions[accessor][prototype] || (extensions[accessor][prototype] = {})
+                extensions[accessor][prototype][proxy.extension.name] = proxy.extension
+            }
         for (const accessor of accessorNames)
         {
             let keys = Object.keys(proxyContainers[accessor])
             keys = prototypes.filter(p => keys.includes(p))
             for (let i = 0; i < keys.length; ++i)
-                proxyContainers[accessor][keys[i]].proxies.forEach(p => { extensions[p.extension.name] = p.extension })
+                proxyContainers[accessor][keys[i]].proxies.forEach(p => filler(p, `x${accessor}`, keys[i]))
         }
         return extensions
     }
