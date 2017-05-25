@@ -1,4 +1,4 @@
-require("./prototype-extension")
+const PrototypeExtension = require("./prototype-extension")
 const ArrayExtension = require("./array-extension")
 const StringExtension = require("./string-extension")
 const ObjectExtension = require("./object-extension")
@@ -53,10 +53,12 @@ console.log(b._.methodCommon())
 console.log(c._.methodCommon())
 
 console.log(c._.__extensions__())
+console.log(c.__.__extensions__())
 console.log(c._.__extensions__().Ax.methodA(b))
+console.log(PrototypeExtension.__extensions__(c))
 
 //console.log(a._.methodB())
 
-A._.extendWith(A2x)
+//A._.extendWith(A2x)
 
 //C._.extendWith(Cx)

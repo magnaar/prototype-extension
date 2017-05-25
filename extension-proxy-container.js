@@ -1,9 +1,11 @@
+const ArrayExtension = require("./array-extension")
 let PrototypeExtension
 
 module.exports = class ExtensionProxyContainer
 {
-    constructor(proxyContainers, prototype)
+    constructor(proxyContainers, accessorName, prototype)
     {
+        this.accessorName = accessorName
         this.proxyContainers = proxyContainers
         this.prototype = prototype
         if (! PrototypeExtension)
@@ -19,8 +21,12 @@ module.exports = class ExtensionProxyContainer
     {
         if (this.proxies.includes(p => p.extension === extension))
             throw new Error(`"${this.prototype.constructor.name}" already has "${extension.name}" as extension`)
-        //const keys = ArrayExtension.flatten(this.proxies.map(p => Object.keys(p.extension)))
-        //console.log(Object.keys(extension))
+        const keys = ArrayExtension.flatten(this.proxies.map(p => PrototypeExtension.__protoproperties__(p.extension)))
+        let key
+        if ((key = PrototypeExtension.__protoproperties__(extension)
+            .find(p => keys.includes(p))
+        ))
+            throw new Error(`"${this.prototype.constructor.name}" already has a "${key}" method`)
         //console.log(this.proxies.map(p => Object.keys(p.extension)))
         //if (Object.keys(extension).includes(k => keys.includes(k))))
         this.proxies.push({
@@ -42,7 +48,7 @@ module.exports = class ExtensionProxyContainer
         {
             let member = proxyContainer.proxies[i].proxy[name]
             if (member)
-                return (! (member instanceof Function) ? member : member.bind(void 0, this.instance))
+                return (! (member instanceof Function) ? member : member.bind(this, this.instance))
         }
         out && (out.continue = true)
         return proxyContainer === this
@@ -51,12 +57,12 @@ module.exports = class ExtensionProxyContainer
 
     getMemberInParentPrototype(name)
     {
-        let keys = Object.keys(this.proxyContainers)
+        let keys = Object.keys(this.proxyContainers[this.accessorName])
         keys = this.parentPrototypes.filter(p => keys.includes(p))
         const out = { continue: true }
         for (let i = 0; i < keys.length; ++i)
         {
-            const value = this.getMember(name, this.proxyContainers[keys[i]], out)
+            const value = this.getMember(name, this.proxyContainers[this.accessorName][keys[i]], out)
             if (! out.continue)
                 return value
         }

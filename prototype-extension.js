@@ -4,16 +4,21 @@ const proxyContainers = {}
 
 class PrototypeExtension
 {
-    static extendWith(classReference, extension, extensionAccessorName="_")
+    static extendWith(classReference, extension, accessorName="_")
     {
         const prototype = classReference.prototype
         const prototypeName = prototype.constructor.name
         let container
-        if (! (container = proxyContainers[prototypeName]))
-            container = proxyContainers[prototypeName] = new ExtensionProxyContainer(proxyContainers, prototype)
-        container.addProxy(extension)
-        if (! prototype.hasOwnProperty(extensionAccessorName))
-            Object.defineProperty(prototype, extensionAccessorName,
+        if (! proxyContainers[accessorName])
+            proxyContainers[accessorName] = {}
+        if (! (container = proxyContainers[accessorName][prototypeName]))
+            container = proxyContainers[accessorName][prototypeName] = new ExtensionProxyContainer(proxyContainers, accessorName, prototype)
+        if (! container.proxies.find(p => p.extension === PrototypeExtension))
+            container.addProxy(PrototypeExtension)
+        if (extension !== PrototypeExtension)
+            container.addProxy(extension)
+        if (! prototype.hasOwnProperty(accessorName))
+            Object.defineProperty(prototype, accessorName,
                 { get: function () { return container.bindProxy(this) } }
             )
     }
@@ -21,11 +26,18 @@ class PrototypeExtension
     static __extensions__(self)
     {
         const prototypes = PrototypeExtension.__protochain__(self)
-        let keys = Object.keys(proxyContainers)
-        keys = prototypes.filter(p => keys.includes(p))
+        const accessorNames = (this instanceof ExtensionProxyContainer
+            ? [this.accessorName]
+            : Object.keys(proxyContainers)
+        )
         const extensions = {}
-        for (let i = 0; i < keys.length; ++i)
-            proxyContainers[keys[i]].proxies.forEach(p => { extensions[p.extension.name] = p.extension })
+        for (const accessor of accessorNames)
+        {
+            let keys = Object.keys(proxyContainers[accessor])
+            keys = prototypes.filter(p => keys.includes(p))
+            for (let i = 0; i < keys.length; ++i)
+                proxyContainers[accessor][keys[i]].proxies.forEach(p => { extensions[p.extension.name] = p.extension })
+        }
         return extensions
     }
 
@@ -40,11 +52,13 @@ class PrototypeExtension
         return prototypes
     }
 	
-	static getPrototypeProperties(proto)
+	static __protoproperties__(prototype)
 	{
-		for (const prop of Object.getOwnPropertyNames(proto))
-		if (! Object.hasOwnProperty(prop))
-			console.log(prop)
+        const result = []
+		for (const property of Object.getOwnPropertyNames(prototype))
+		    if (! Object.hasOwnProperty(property))
+			    result.push(property)
+        return result
 	}
 }
 
