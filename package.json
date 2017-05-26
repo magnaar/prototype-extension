@@ -4,7 +4,10 @@
   "description": "Extension method in javascript without polluting prototypes",
   "main": "prototype-extension.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "ava"
+  },
+   "ava": {
+    "files": [ "test/*.test.js" ]
   },
   "repository": {
     "type": "git",
@@ -15,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/magnaar/prototype-extension/issues"
   },
-  "homepage": "https://github.com/magnaar/prototype-extension#readme"
+  "homepage": "https://github.com/magnaar/prototype-extension#readme",
+  "devDependencies": {
+    "ava": "^0.19.1"
+  }
 }

@@ -10,7 +10,6 @@ module.exports = class ExtensionProxyContainer
         this.prototype = prototype
         if (! PrototypeExtension)
             PrototypeExtension = require("./prototype-extension")
-        console.log(PrototypeExtension)
         this.parentPrototypes = PrototypeExtension.__protochain__(prototype)
         this.instance = null
         this.proxies = []
@@ -19,7 +18,7 @@ module.exports = class ExtensionProxyContainer
 
     addProxy(extension)
     {
-        if (this.proxies.includes(p => p.extension === extension))
+        if (this.proxies.find(p => p.extension === extension))
             throw new Error(`"${this.prototype.constructor.name}" already has "${extension.name}" as extension`)
         const keys = ArrayExtension.flatten(this.proxies.map(p => PrototypeExtension.__protoproperties__(p.extension)))
         let key
