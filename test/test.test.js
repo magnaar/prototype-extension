@@ -94,7 +94,7 @@ test("Can add several time the same extension in the prototype chain", t => {
     t.is(new E()._.methodCommon(), "E: Commonx")
 })
 
-test("Can add a new accessor", t => {
+test("Can create a new accessor", t => {
     class F {}
     class Fx { static methodF(self) { return self.constructor.name + ": Fx" }}
 
