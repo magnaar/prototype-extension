@@ -2,26 +2,31 @@ const ExtensionProxyContainer = require("./extension-proxy-container")
 
 const proxyContainers = {}
 
+function addProxy(accessorName, prototype, extension, conditionToAdd)
+{
+    let container
+    if (! proxyContainers[accessorName].has(prototype))
+        proxyContainers[accessorName].set(prototype, new ExtensionProxyContainer(proxyContainers, accessorName, prototype))
+    container = proxyContainers[accessorName].get(prototype)        
+    if (conditionToAdd(container))
+        container.addProxy(extension)
+    return container
+}
+
 class PrototypeExtension
 {
     static extendWith(classReference, extension, accessorName="_")
     {
         const prototype = classReference.prototype
-        const prototypeName = prototype.constructor.name
-        let container
         if (! proxyContainers[accessorName])
             proxyContainers[accessorName] = new Map()
         
-        if (! proxyContainers[accessorName].has(Object.prototype))
-            proxyContainers[accessorName].set(Object.prototype, new ExtensionProxyContainer(proxyContainers, accessorName, Object.prototype))
-        if (! proxyContainers[accessorName].get(Object.prototype).proxies.find(p => p.extension === PrototypeExtension))
-            proxyContainers[accessorName].get(Object.prototype).addProxy(PrototypeExtension)
-
-        if (! proxyContainers[accessorName].has(prototype))
-            proxyContainers[accessorName].set(prototype, new ExtensionProxyContainer(proxyContainers, accessorName, prototype))
-        container = proxyContainers[accessorName].get(prototype)        
-        if (extension !== PrototypeExtension)
-            container.addProxy(extension)
+        addProxy(accessorName, Object.prototype, PrototypeExtension,
+            (container) => ! container.proxies.find(p => p.extension === PrototypeExtension)
+        )
+        const container = addProxy(accessorName, prototype, extension,
+            () => extension !== PrototypeExtension
+        )
         
         if (! prototype.hasOwnProperty(accessorName))
             Object.defineProperty(prototype, accessorName,
