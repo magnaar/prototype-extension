@@ -10,15 +10,19 @@ class PrototypeExtension
         const prototypeName = prototype.constructor.name
         let container
         if (! proxyContainers[accessorName])
-            proxyContainers[accessorName] = {}
-        if (! (container = proxyContainers[accessorName][prototypeName]))
-            container = proxyContainers[accessorName][prototypeName] = new ExtensionProxyContainer(proxyContainers, accessorName, prototype)
-        if (! proxyContainers[accessorName].Object)
-            proxyContainers[accessorName].Object = new ExtensionProxyContainer(proxyContainers, accessorName, Object)
-        if (! proxyContainers[accessorName].Object.proxies.find(p => p.extension === PrototypeExtension))
-            proxyContainers[accessorName].Object.addProxy(PrototypeExtension)
+            proxyContainers[accessorName] = new Map()
+        
+        if (! proxyContainers[accessorName].has(Object.prototype))
+            proxyContainers[accessorName].set(Object.prototype, new ExtensionProxyContainer(proxyContainers, accessorName, Object.prototype))
+        if (! proxyContainers[accessorName].get(Object.prototype).proxies.find(p => p.extension === PrototypeExtension))
+            proxyContainers[accessorName].get(Object.prototype).addProxy(PrototypeExtension)
+
+        if (! proxyContainers[accessorName].has(prototype))
+            proxyContainers[accessorName].set(prototype, new ExtensionProxyContainer(proxyContainers, accessorName, prototype))
+        container = proxyContainers[accessorName].get(prototype)        
         if (extension !== PrototypeExtension)
             container.addProxy(extension)
+        
         if (! prototype.hasOwnProperty(accessorName))
             Object.defineProperty(prototype, accessorName,
                 { get: function () { return container.bindProxy(this) } }
@@ -41,10 +45,10 @@ class PrototypeExtension
             }
         for (const accessor of accessorNames)
         {
-            let keys = Object.keys(proxyContainers[accessor])
+            let keys = Array.from(proxyContainers[accessor].keys())
             keys = prototypes.filter(p => keys.includes(p))
             for (let i = 0; i < keys.length; ++i)
-                proxyContainers[accessor][keys[i]].proxies.forEach(p => filler(p, `x${accessor}`, keys[i]))
+                proxyContainers[accessor].get(keys[i]).proxies.forEach(p => filler(p, `x${accessor}`, keys[i]))
         }
         return extensions
     }
@@ -53,10 +57,10 @@ class PrototypeExtension
     {
         let prototype = self.__proto__
         if (! prototype)
-            return [self.constructor.name]
-        const prototypes = [prototype.constructor.name]
+            return [self]
+        const prototypes = [prototype]
         while (prototype.__proto__)
-            prototypes.push((prototype = prototype.__proto__).constructor.name)
+            prototypes.push((prototype = prototype.__proto__))
         return prototypes
     }
 	

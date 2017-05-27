@@ -124,6 +124,47 @@ test("Overriding extension method with the prototype chain", t => {
     t.is(new I()._.method(), "I: Middlex")
     t.is(new J()._.method(), "J: Edgex")
 })
+
+test("Scoped prototype extends outside ones: Same method extension names", t => {
+    (() => {
+        class S {}
+        class Sx { static methodS(self) {} }
+        S._.extendWith(Sx)
+    })()
+    
+    class S {}
+    class SOx { static methodS(self) {} }
+    try
+    {
+        S._.extendWith(SOx)
+        t.pass()
+    }
+    catch (error)
+    {
+        t.fail(error.toString())
+    }
+})
+
+test("Scoped prototype doesn't extends outside ones: Same extension names", t => {
+    (() => {
+        class S {}
+        class Sx { static methodS(self) {} }
+        S._.extendWith(Sx)
+    })()
+    
+    class S {}
+    class Sx { static anotherMethod(self) {} }
+    try
+    {
+        S._.extendWith(Sx)
+        t.pass()
+    }
+    catch (error)
+    {
+        t.fail(error.toString())
+    }
+})
+
 /*
 const PrototypeExtension = require("./prototype-extension")
 const ArrayExtension = require("./array-extension")

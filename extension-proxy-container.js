@@ -49,28 +49,21 @@ module.exports = class ExtensionProxyContainer
         }
         out && (out.continue = true)
         return proxyContainer === this
+            && out === null
             && this.getMemberInParentPrototype(name)
     }
 
     getMemberInParentPrototype(name)
     {
-        let keys = Object.keys(this.proxyContainers[this.accessorName])
+        let keys = Array.from(this.proxyContainers[this.accessorName].keys())
         keys = this.parentPrototypes.filter(p => keys.includes(p))
         const out = { continue: true }
         for (let i = 0; i < keys.length; ++i)
         {
-            const value = this.getMember(name, this.proxyContainers[this.accessorName][keys[i]], out)
+            const value = this.getMember(name, this.proxyContainers[this.accessorName].get(keys[i]), out)
             if (! out.continue)
                 return value
         }
         throw new Error(`"${this.prototype.constructor.name}" doesn't have a method "${name}" in its extensions.`)
-    }
-
-    getParentPrototype(prototype)
-    {
-        const parentPrototypes = []
-        while (prototype.__proto__)
-            parentPrototypes.push((prototype = prototype.__proto__).constructor.name)
-        return parentPrototypes
     }
 }
