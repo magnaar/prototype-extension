@@ -165,6 +165,34 @@ test("Scoped prototype doesn't extends outside ones: Same extension names", t =>
     }
 })
 
+test('using accessor on __extensions__(true) object', t => {
+    class U {}
+    class Ux { static methodS(self) { return "Ux" } }
+
+    U._.extendWith(Ux)
+    t.is(new U()._.__extensions__(true)._.U.Ux.methodS(), "Ux")
+})
+
+test("Can overwrite the accessor property on an instance", t => {
+    const obj = {}
+    obj._ = "Hello"
+    t.is(obj._, "Hello")
+})
+
+test("Can overwrite the accessor property on an instance with undefined", t => {
+    const obj = {}
+    obj._ = void 0
+    t.is(obj._, void 0)
+})
+
+test("Accessor property can be checked with hasOwnProperty", t => {
+    const obj = {}
+    t.is(obj.hasOwnProperty("_"), false)
+    obj._ = "Hello"
+    t.is(obj.hasOwnProperty("_"), true)
+})
+
+
 /*
 const PrototypeExtension = require("./prototype-extension")
 const ArrayExtension = require("./array-extension")

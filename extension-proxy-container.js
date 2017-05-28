@@ -13,7 +13,7 @@ module.exports = class ExtensionProxyContainer
         this.parentPrototypes = PrototypeExtension.__protochain__(prototype)
         this.instance = null
         this.proxies = []
-        this.proxy = new Proxy({}, { get: (taget, name) => this.getMember(name, this, null) })
+        this.proxy = new Proxy({}, { get: (target, name) => this.getMember(name, this, null) })
     }
 
     addProxy(extension)
@@ -64,6 +64,8 @@ module.exports = class ExtensionProxyContainer
             if (! out.continue)
                 return value
         }
+        if (this.instance.hasOwnProperty(name))
+            return this.instance[name]
         throw new Error(`"${this.prototype.constructor.name}" doesn't have a method "${name}" in its extensions.`)
     }
 }
