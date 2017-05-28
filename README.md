@@ -100,7 +100,7 @@ class ExtensionWorld {
 }
 
 A._.extendWith(ExtensionHello)
-A._.extendWith(ExtensionWorld) // Will throw an error both extension has a method named method
+A._.extendWith(ExtensionWorld) // Will throw an error both extensions have a method named "method"
 ```
 
 But this
@@ -123,8 +123,8 @@ class ExtensionWorld {
 A._.extendWith(ExtensionHello)
 B._.extendWith(ExtensionWorld) // Will work
 
-new A().method() // => 'Hello'
-new B().method() // => 'World'
+new A()._.method() // => 'Hello'
+new B()._.method() // => 'World'
 ```
 
 Be careful
