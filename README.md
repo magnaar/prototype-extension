@@ -139,9 +139,9 @@ obj._ || (obj._ = "value")
 
 but
 ```
+const obj = {}
 obj.hasOwnProperty("_") // => false
 
-const obj = {}
 obj._ = "Hello"
 obj.hasOwnProperty("_") // => true
 ```
