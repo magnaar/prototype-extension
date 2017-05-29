@@ -13,7 +13,7 @@ class PrototypeExtension
             proxyContainers[accessorName] = new Map()
         
         addProxy(accessorName, Object.prototype, PrototypeExtension,
-            (container) => ! container.proxies.find(p => p.extension === PrototypeExtension)
+            (container) => ! container.extensions.find(e => e === PrototypeExtension)
         )
         const container = addProxy(accessorName, prototype, extension,
             () => extension !== PrototypeExtension
@@ -31,19 +31,19 @@ class PrototypeExtension
             : Object.keys(proxyContainers)
         let extensions = {}
         const filler = ! complete
-            ? (proxy) => { extensions[proxy.extension.name] = proxy.extension }
-            : (proxy, accessor, prototype) => {
+            ? (extension) => { extensions[extension.name] = extension }
+            : (extension, accessor, prototype) => {
                 if (! extensions.hasOwnProperty(accessor))
                     extensions[accessor] = {}
                 extensions[accessor][prototype] || (extensions[accessor][prototype] = {})
-                extensions[accessor][prototype][proxy.extension.name] = proxy.extension
+                extensions[accessor][prototype][extension.name] = extension
             }
         for (const accessor of accessorNames)
         {
             let keys = Array.from(proxyContainers[accessor].keys())
             keys = prototypes.filter(p => keys.includes(p))
             for (let i = 0; i < keys.length; ++i)
-                proxyContainers[accessor].get(keys[i]).proxies.forEach(p => filler(p, accessor, keys[i].constructor.name))
+                proxyContainers[accessor].get(keys[i]).extensions.forEach(e => filler(e, accessor, keys[i].constructor.name))
         }
         return extensions
     }

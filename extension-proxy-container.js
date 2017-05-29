@@ -14,24 +14,21 @@ module.exports = class ExtensionProxyContainer
             PrototypeExtension = require("./prototype-extension")
         this.parentPrototypes = PrototypeExtension.__protochain__(prototype)
         this.instance = null
-        this.proxies = []
+        this.extensions = []
         this.proxy = new Proxy({}, { get: (target, name) => this.getMember(name, this, null) })
     }
 
     addProxy(extension)
     {
-        if (this.proxies.find(p => p.extension === extension))
+        if (this.extensions.find(e => e === extension))
             throw new Error(`"${this.prototype.constructor.name}" already has "${extension.name}" as extension`)
-        const keys = ArrayExtension.flatten(this.proxies.map(p => PrototypeExtension.__protoproperties__(p.extension)))
+        const keys = ArrayExtension.flatten(this.extensions.map(p => PrototypeExtension.__protoproperties__(p)))
         let key
         if ((key = PrototypeExtension.__protoproperties__(extension)
             .find(p => keys.includes(p))
         ))
             throw new Error(`"${this.prototype.constructor.name}" already has a "${key}" method`)
-        this.proxies.push({
-            extension: extension,
-            proxy: new Proxy(extension, { get: (target, name) => target[name] })
-        })
+        this.extensions.push(extension)
     }
 
     bindProxy(instance)
@@ -43,9 +40,9 @@ module.exports = class ExtensionProxyContainer
     getMember(name, proxyContainer=this, out={ continue: false })
     {
         out && (out.continue = false)
-        for (let i = 0; i < proxyContainer.proxies.length; ++i)
+        for (let i = 0; i < proxyContainer.extensions.length; ++i)
         {
-            let member = proxyContainer.proxies[i].proxy[name]
+            let member = proxyContainer.extensions[i][name]
             if (member)
                 return (! (member instanceof Function) ? member : member.bind(this, this.instance))
         }
