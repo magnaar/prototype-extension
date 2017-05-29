@@ -1,3 +1,5 @@
+'use strict'
+
 const ExtensionProxyContainer = require("./extension-proxy-container")
 
 const proxyContainers = {}

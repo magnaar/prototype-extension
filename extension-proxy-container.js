@@ -1,3 +1,5 @@
+'use strict'
+
 const ArrayExtension = require("./array-extension")
 let PrototypeExtension
 

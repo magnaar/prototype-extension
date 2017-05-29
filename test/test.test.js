@@ -1,3 +1,5 @@
+'use strict'
+
 import test from 'ava'
 import PrototypeExtension from "../prototype-extension"
 
