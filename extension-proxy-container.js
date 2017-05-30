@@ -16,19 +16,21 @@ module.exports = class ExtensionProxyContainer
         this.instance = null
         this.extensions = []
         this.proxy = new Proxy({}, { get: (target, name) => this.getMember(name, this, null) })
+        this.staticReferences = {}
     }
 
-    addProxy(extension)
+    addExtension(extension)
     {
         if (this.extensions.find(e => e === extension))
             throw new Error(`"${this.prototype.constructor.name}" already has "${extension.name}" as extension`)
         const keys = ArrayExtension.flatten(this.extensions.map(p => PrototypeExtension.__protoproperties__(p)))
+        const extensionKeys = PrototypeExtension.__protoproperties__(extension)
         let key
-        if ((key = PrototypeExtension.__protoproperties__(extension)
-            .find(p => keys.includes(p))
-        ))
+        if ((key = extensionKeys.find(p => keys.includes(p))))
             throw new Error(`"${this.prototype.constructor.name}" already has a "${key}" method`)
         this.extensions.push(extension)
+        keys.forEach(k => (this.staticReferences[k] = extension[k]))
+        extensionKeys.forEach(k => (this.staticReferences[k] = extension[k]))
     }
 
     bindProxy(instance)
@@ -39,12 +41,14 @@ module.exports = class ExtensionProxyContainer
 
     getMember(name, proxyContainer=this, out={ continue: false })
     {
+        if (this.staticReferences[name])
+            return  this.staticReferences[name].bind(this, this.instance)
         out && (out.continue = false)
         for (let i = 0; i < proxyContainer.extensions.length; ++i)
         {
             let member = proxyContainer.extensions[i][name]
-            if (member)
-                return (! (member instanceof Function) ? member : member.bind(this, this.instance))
+            if (member && member instanceof Function)
+                return (this.staticReferences[name] = member).bind(this, this.instance)
         }
         out && (out.continue = true)
         return proxyContainer === this
