@@ -16,10 +16,10 @@ class PrototypeExtension
         if (! proxyContainers[token][accessorName])
             proxyContainers[token][accessorName] = new Map()
         
-        addProxy(proxyContainers[token], accessorName, Object.prototype, PrototypeExtension,
+        addExtension(proxyContainers[token], accessorName, Object.prototype, PrototypeExtension,
             (container) => ! container.extensions.find(e => e === PrototypeExtension)
         )
-        const container = addProxy(proxyContainers[token], accessorName, prototype, extension,
+        const container = addExtension(proxyContainers[token], accessorName, prototype, extension,
             () => extension !== PrototypeExtension
         )
         
@@ -75,14 +75,14 @@ class PrototypeExtension
 }
 
 
-function addProxy(moduleProxyContainers, accessorName, prototype, extension, conditionToAdd)
+function addExtension(moduleProxyContainers, accessorName, prototype, extension, conditionToAdd)
 {
     let container
     if (! moduleProxyContainers[accessorName].has(prototype))
         moduleProxyContainers[accessorName].set(prototype, new ExtensionProxyContainer(moduleProxyContainers, accessorName, prototype))
     container = moduleProxyContainers[accessorName].get(prototype)        
     if (conditionToAdd(container))
-        container.addProxy(extension)
+        container.addExtension(extension)
     return container
 }
 
