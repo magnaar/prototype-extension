@@ -1,61 +1,46 @@
 'use strict'
 
+const ObjectExtension = require("./object-extension")
+const ArrayExtension = require("./array-extension")
 const ExtensionProxyContainer = require("./extension-proxy-container")
-const { getCallerModuleToken } = require("./module-token")
+const { getModuleToken, getCallerModuleToken } = require("./module-token")
 
-const proxyContainers = {}
+const moduleSymbol = Symbol.for("prototype-extension")
+const classSymbol = Symbol.for("PrototypeExtension")
+const moduleObject = (
+        Object.prototype[moduleSymbol]
+        || (Object.prototype[moduleSymbol] = {})
+    )
 
 class PrototypeExtension
 {
     static extendWith(classReference, extension, accessorName="_")
     {
         const prototype = classReference.prototype
-        const token = getCallerModuleToken()
-        if (! proxyContainers[token])
-            proxyContainers[token] = {}
-        if (! proxyContainers[token][accessorName])
-            proxyContainers[token][accessorName] = new Map()
-        
-        addExtension(proxyContainers[token], accessorName, Object.prototype, PrototypeExtension,
-            (container) => ! container.extensions.find(e => e === PrototypeExtension)
+        const moduleToken = getCleanModuleToken()
+        let container = ObjectExtension.getOwnAt(prototype,
+            () => new ExtensionProxyContainer(prototype, { moduleSymbol, moduleToken, accessorName }),
+            moduleSymbol, moduleToken, accessorName
         )
-        const container = addExtension(proxyContainers[token], accessorName, prototype, extension,
-            () => extension !== PrototypeExtension
-        )
-        
+        container.addExtension(extension)
+
         if (! prototype.hasOwnProperty(accessorName))
-            Object.defineProperty(prototype, accessorName, propertyBuilder(accessorName, container))
+            Object.defineProperty(prototype, accessorName, propertyBuilder(prototype, accessorName))
     }
 
     static __extensions__(self, complete=false)
     {
-        const token = getCallerModuleToken()
-        const prototypes = PrototypeExtension.__protochain__(self)
-        const accessorNames = this instanceof ExtensionProxyContainer
-            ? [this.accessorName]
-            : Object.keys(proxyContainers[token])
-        let extensions = {}
-        const filler = ! complete
-            ? (extension) => { extensions[extension.name] = extension }
-            : (extension, accessor, prototype) => {
-                if (! extensions.hasOwnProperty(accessor))
-                    extensions[accessor] = {}
-                extensions[accessor][prototype] || (extensions[accessor][prototype] = {})
-                extensions[accessor][prototype][extension.name] = extension
-            }
-        for (const accessor of accessorNames)
-        {
-            let keys = Array.from(proxyContainers[token][accessor].keys())
-            keys = prototypes.filter(p => keys.includes(p))
-            for (let i = 0; i < keys.length; ++i)
-                proxyContainers[token][accessor].get(keys[i]).extensions.forEach(e => filler(e, accessor, keys[i].constructor.name))
-        }
-        return extensions
+        return (complete ? listFullExtensions : listExtensions)(self, this && this.accessorName)
+    }
+
+    static __extensionmethods__(self, complete=false)
+    {
+        return (complete ? listFullExtensions : listExtensions)(self, this && this.accessorName, true)
     }
 
     static __protochain__(self)
     {
-        let prototype = self.__proto__
+        let prototype = (self.prototype || self).__proto__
         if (! prototype)
             return [self]
         const prototypes = [prototype]
@@ -63,30 +48,23 @@ class PrototypeExtension
             prototypes.push((prototype = prototype.__proto__))
         return prototypes
     }
-	
-	static __protoproperties__(prototype)
-	{
+    
+    static __protoproperties__(prototype)
+    {
         const result = []
-		for (const property of Object.getOwnPropertyNames(prototype))
-		    if (! Object.hasOwnProperty(property))
-			    result.push(property)
+        for (const property of Object.getOwnPropertyNames(prototype))
+            if (! Object.hasOwnProperty(property))
+                result.push(property)
         return result
-	}
+    }
 }
 
-
-function addExtension(moduleProxyContainers, accessorName, prototype, extension, conditionToAdd)
+function getCleanModuleToken()
 {
-    let container
-    if (! moduleProxyContainers[accessorName].has(prototype))
-        moduleProxyContainers[accessorName].set(prototype, new ExtensionProxyContainer(moduleProxyContainers, accessorName, prototype))
-    container = moduleProxyContainers[accessorName].get(prototype)        
-    if (conditionToAdd(container))
-        container.addExtension(extension)
-    return container
+    return getCallerModuleToken(1).replace("\\prototype-extension", "")
 }
 
-function propertyBuilder(accessorName, container)
+function propertyBuilder(prototype, accessorName)
 {
     return {
         enumerable: true,
@@ -94,7 +72,11 @@ function propertyBuilder(accessorName, container)
         {
             return this.hasOwnProperty(accessorName)
                 ? this[accessorName]
-                : container.bindProxy(this)
+                : ObjectExtension.onlyGetOwnAt(prototype,
+                    moduleSymbol,
+                    getCleanModuleToken(),
+                    accessorName
+                ).bindProxy(this)
         },
         set: function(value)
         {
@@ -110,6 +92,83 @@ function propertyBuilder(accessorName, container)
     }
 }
 
-module.exports = PrototypeExtension
+function listExtensions(self, accessorName, returnMethods)
+{
+    const token = getCleanModuleToken()
+    const prototypes = Object.prototype[moduleSymbol][classSymbol].__protochain__(self)
+    const extensions = {}
+    let container
+    for (const prototype of prototypes)
+        if (accessorName)
+        {
+            if ((container = prototype[moduleSymbol][token][accessorName]))
+                addExtensionClass(extensions, container, returnMethods)
+        }
+        else
+        {
+            container = prototype[moduleSymbol][token]
+            for (const accessor of Object.keys(container).filter(k => container.hasOwnProperty(k)))
+                addExtensionClass(extensions, container[accessor], returnMethods)
+        }
+    return extensions
+}
 
-PrototypeExtension.extendWith(Object, PrototypeExtension)
+function listFullExtensions(self, accessorName, returnMethods)
+{
+    const token = getCleanModuleToken()
+    const prototypes = Object.prototype[moduleSymbol][classSymbol].__protochain__(self)
+    const extensions = {}
+    let container
+    for (const prototype of prototypes)
+    {
+        if (accessorName)
+        {
+            if ((container = prototype[moduleSymbol][token][accessorName]) && container.hasOwnProperty("extensions"))
+                addExtensionMethods(extensions, container, prototype, accessorName, returnMethods)
+        }
+        else
+        {
+            container = prototype[moduleSymbol][token]
+            for (const accessor of Object.keys(container).filter(k => container.hasOwnProperty(k)))
+                if (container[accessor].hasOwnProperty("extensions"))
+                    addExtensionMethods(extensions, container[accessor], prototype, accessor, returnMethods)
+        }
+    }
+    return extensions
+}
+
+function addExtensionClass(extensions, container, returnMethods)
+{
+    if (returnMethods)
+        ObjectExtension.forEach(container.staticReferences, (k, v) => (extensions[k] = v))
+    else if(container.hasOwnProperty("extensions"))
+        for (const extension of container.extensions)
+            extensions[extension.name] = extension
+}
+
+function addExtensionMethods(extensions, container, prototype, accessorName, returnMethods)
+{
+    for (const extension of container.extensions)
+        if (! returnMethods)
+            ObjectExtension.setOwnAt(extensions, extension,
+                accessorName,
+                prototype.name || prototype.constructor.name,
+                extension.name
+            )
+        else
+            Object.prototype[moduleSymbol][classSymbol].__protoproperties__(extension)
+                .forEach(p => {
+                    ObjectExtension.setOwnAt(extensions, extension[p],
+                        accessorName,
+                        prototype.name || prototype.constructor.name,
+                        extension.name,
+                        p
+                    )
+                })
+}
+
+Object.prototype[moduleSymbol][classSymbol] = Object.prototype[moduleSymbol][classSymbol] || PrototypeExtension
+
+module.exports = Object.prototype[moduleSymbol][classSymbol]
+
+Object.prototype[moduleSymbol][classSymbol].extendWith(Object, Object.prototype[moduleSymbol][classSymbol])

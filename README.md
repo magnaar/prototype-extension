@@ -1,11 +1,10 @@
-prototype-extension
-===================
+**prototype-extension** 0.1.7
+=================
+###_Extension methods brought to javascript_
 
-Extension methods brought to javascript.
 
-How does it work ?
----
-I. Create an extension
+##**How does it work ?**
+###I. Create an extension
 ```
 // ./string-extension.js
 
@@ -17,7 +16,7 @@ module.exports = class StringExtension
     }
 }
 ```
-II. Extend a type with your extension class
+###II. Extend a type with your extension class
 ```
 // ./main.js
 
@@ -27,7 +26,7 @@ const StringExtension = require("./string-extension")
 String._.extendWith(StringExtension)
 ```
 
-III. Use your extension method
+###III. Use your extension method
 ```
 // ./main.js
 
@@ -38,9 +37,7 @@ III. Use your extension method
 console.log(typeof "42"._.toInt()) // => number
 ```
 
-See which extensions are accessibles
----
-
+##**See which extensions are accessibles**
 ```
 ""._.__extensions__()
 // => {
@@ -60,13 +57,58 @@ To have more information, you call it like this:
 //    }
 // }
 ```
-It will indicate how to access the extensions, on which type the extension came from and all the extension for the types of prototype chain.
+It will indicate how to access the extensions, on which type the extension came from and all the extensions for the types of the prototype chain.
 
-You can't...
-===
+##**See which extension methods are accessibles**
+```
+""._.__extensionmethods__()
+// => {
+//    toInt: Function toInt
+//    extendWith: Function extendWith
+//    __extensions__: Function __extensions__
+//    __extensionmethods__: Function __extensionmethods__
+//    __protochain__: Function __protochain__
+//    __protoproperties__: Function __protoproperties__
+// }
+```
+This will show every extension methods available for this type (even the inherited ones)
 
-add twice the same extension on the same prototype
----
+To have more information, you call it like this:
+```
+""._.__extensionmethods__(true)
+// => {
+//    _: {
+//      String: {
+//          StringExtension: {
+//              toInt: Function toInt
+//          }
+//      },
+//      Object: {
+//          PrototypeExtension: {
+//              extendWith: Function extendWith
+//              __extensions__: Function __extensions__
+//              __extensionmethods__: Function __extensionmethods__
+//              __protochain__: Function __protochain__
+//              __protoproperties__: Function __protoproperties__
+//          }
+//      }
+//    }
+// }
+```
+
+#**You can't...**
+
+##**see the extensions added in a node_module**
+and a node\_module can't see your extensions
+
+You can't add methods dynamically on your extension after extending your prototype.
+```
+String._.extendWith(StringExtension)
+StringExtension.dynamicMethod = function (self) { return "dynamicMethod" }
+""._.dynamicMethod() // => Will throw an error
+```
+
+##**add twice the same extension on the same prototype**
 ```
 String._.extendWith(StringExtension)
 String._.extendWith(StringExtension) // Will throw an error
@@ -82,8 +124,7 @@ A._.extendWith(Extension)
 B._.extendWith(Extension)
 ```
 
-add two extension with the same method name on the same prototype
----
+##**add two extension with the same method name on the same prototype**
 ```
 class A {}
 
@@ -103,7 +144,7 @@ A._.extendWith(ExtensionHello)
 A._.extendWith(ExtensionWorld) // Will throw an error both extensions have a method named "method"
 ```
 
-But this
+###But this
 ```
 class A {}
 class B extends A {}
@@ -127,8 +168,7 @@ new A()._.method() // => 'Hello'
 new B()._.method() // => 'World'
 ```
 
-Be careful
-===
+#**Be careful**
 ```
 const obj = {}
 obj._ // or obj.yourAccessor will always be true
@@ -137,7 +177,7 @@ obj._ // or obj.yourAccessor will always be true
 obj._ || (obj._ = "value")
 ```
 
-but
+###but
 ```
 const obj = {}
 obj.hasOwnProperty("_") // => false

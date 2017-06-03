@@ -24,12 +24,12 @@ function getTokenFromPath(path)
 
 function getModuleToken()
 {
-    return getTokenFromPath(GetCaller.file())
+    return getTokenFromPath(GetCaller.file(1))
 }
 
-function getCallerModuleToken()
+function getCallerModuleToken(callerLevel = 0)
 {
-    return getTokenFromPath(GetCaller.file(2))
+    return getTokenFromPath(GetCaller.file(2 + callerLevel))
 }
 
 module.exports = {
