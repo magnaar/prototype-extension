@@ -13,11 +13,11 @@ module.exports = class GetCaller
             let currentFile = callerFile = err.stack[0].getFileName()
             for (let i = 1; i < err.stack.length && 0 < depth; ++i)
             {
-                callerFile = err.stack[i].getFileName()
+                currentFile = err.stack[i].getFileName()
                 if (currentFile === "module.js")
                     break
                 if (callerFile !== currentFile && depth--)
-                    currentFile = callerFile
+                    callerFile = currentFile
             }
         }
         catch (e)
