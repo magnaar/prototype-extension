@@ -101,3 +101,45 @@ test("Can't find dynamically added methods", t => {
             t.fail(`value   : ${error}\nexpected: ${expectedError}`)
     }
 })
+
+test("Extension method is unavailable after unextendwith", t => {
+    class K {}
+    class Kx { static methodK(self) { return self.constructor.name + ": Kx" }}
+
+    K._.extendWith(Kx)
+    t.is(new K()._.methodK(), "K: Kx")
+    K._.unextendWith(Kx)
+    try
+    {
+        t.is(new K()._.methodK, void 0)
+        t.fail()
+    }
+    catch (error)
+    {
+        const expectedError = `Error: "K" doesn't have a method "methodK" in its extensions.`
+        if (error.toString() == expectedError)
+            t.pass()
+        else
+            t.fail(`value   : ${error}\nexpected: ${expectedError}`)
+    }
+})
+
+test("Extension class is unavailable after unextendwith", t => {
+    class K {}
+    class Kx { static methodK(self) { return self.constructor.name + ": Kx" }}
+
+    K._.extendWith(Kx)
+    t.is(new K()._.__extensions__().Kx, Kx)
+    K._.unextendWith(Kx)
+    t.is(new K()._.__extensions__().Kx, void 0)
+})
+
+test("Extension method is unavailable with __extensionmethods__ after unextendwith", t => {
+    class K {}
+    class Kx { static methodK(self) { return self.constructor.name + ": Kx" }}
+
+    K._.extendWith(Kx)
+    t.is(new K()._.methodK(), "K: Kx")
+    K._.unextendWith(Kx)
+    t.is(new K()._.__extensionmethods__.methodK, void 0)
+})

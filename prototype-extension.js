@@ -28,6 +28,16 @@ class PrototypeExtension
             Object.defineProperty(prototype, accessorName, propertyBuilder(prototype, accessorName))
     }
 
+    static unextendWith(classReference, extension)
+    {
+        const prototype = classReference.prototype
+        const moduleToken = getCleanModuleToken()
+        let container = ObjectExtension.onlyGetOwnAt(prototype,
+            moduleSymbol, moduleToken, this && this.accessorName
+        )
+        container && container.removeExtension(extension)
+    }
+
     static __extensions__(self, complete=false)
     {
         return (complete ? listFullExtensions : listExtensions)(self, this && this.accessorName)
