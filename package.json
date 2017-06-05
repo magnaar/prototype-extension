@@ -3,6 +3,14 @@
   "version": "0.1.8",
   "description": "Extension method in javascript without polluting prototypes",
   "main": "prototype-extension.js",
+  "keywords": [
+    "prototype",
+    "extension",
+    "method",
+    "extender",
+    "primitive",
+    "types"
+  ],
   "scripts": {
     "test": "ava"
   },
@@ -14,7 +22,7 @@
     "url": "git+https://github.com/magnaar/prototype-extension.git"
   },
   "author": "Magnaar",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/magnaar/prototype-extension/issues"
   },

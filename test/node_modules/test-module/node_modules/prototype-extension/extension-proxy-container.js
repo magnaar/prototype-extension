@@ -35,6 +35,14 @@ module.exports = class ExtensionProxyContainer
         extensionKeys.forEach(k => (this.staticReferences[k] = extension[k]))
     }
 
+    removeExtension(extension)
+    {
+        const index = this.extensions.indexOf(extension)
+        this.extensions.splice(index, 1)
+        PrototypeExtension.__protoproperties__(extension)
+            .forEach(p => (delete this.staticReferences[p]))
+    }
+
     bindProxy(instance)
     {
         this.instance = instance
