@@ -186,13 +186,6 @@ obj._ = "Hello"
 obj.hasOwnProperty("_") // => true
 ```
 
-##**When performances matter**
-You should avoid using this and use the static methods directly
-```
-"123"._.toInt() // This will cost more
-StringExtension.toInt("123") // than this
-```
-
 ##**Threading**
 No tests were made for testing this.
 If you use a library for threading, you should process with caution.
