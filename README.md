@@ -25,6 +25,8 @@ const StringExtension = require("./string-extension")
 
 String._.extendWith(StringExtension)
 ```
+It will allow you to use the StringExtension methods on every string of your module.
+It won't affect the other modules, neither the ones which import yours.
 
 ###III. Use your extension method
 ```
@@ -96,6 +98,17 @@ To have more information, you call it like this:
 // }
 ```
 
+##**Unextend your prototype**
+```
+String._.unextendWith(StringExtension)
+
+""._.toInt => Will throw an error
+""._.__extensions__().StringExtension // undefined
+""._.__extensionmethods__().toInt // undefined
+```
+_**It will affect your whole module.** Every strings won't be able to use the StringExtensions methods._
+*However, it won't affect the node_modules (either the ones you use or the ones that use yours)*
+
 #**You can't...**
 
 ##**see the extensions added in a node_module**
@@ -141,7 +154,7 @@ class ExtensionWorld {
 }
 
 A._.extendWith(ExtensionHello)
-A._.extendWith(ExtensionWorld) // Will throw an error both extensions have a method named "method"
+A._.extendWith(ExtensionWorld) // Will throw an error
 ```
 
 ###But this
