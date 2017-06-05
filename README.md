@@ -1,4 +1,4 @@
-**prototype-extension** 0.1.7
+**prototype-extension** 0.2.0
 =================
 ###_Extension methods brought to javascript_
 
