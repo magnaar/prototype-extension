@@ -86,3 +86,15 @@ test("Can add a second time the an extension with the same method name after usi
     N._.extendWith(Nx)
     t.pass()
 })
+
+test("Call with a different instance between the accessor and the method", t => {
+    class O { constructor(arg) { this.field = arg } }
+    class Ox { static double(self) { return self.field + self.field } }
+    O._.extendWith(Ox)
+
+    const oInt = new O(21)
+    const oString = new O("to")
+    const accessor = oInt._
+    t.is(oString._.double(), "toto")
+    t.is(accessor.double(), 42)
+})

@@ -1,20 +1,18 @@
 'use strict'
 
-const ObjectExtension = require("./object-extension")
+const ExtensionProxy = require("./extension-proxy")
 let PrototypeExtension
 
-module.exports = class ExtensionProxyContainer
+module.exports = class ExtensionContainer
 {
     constructor(prototype, accessors)
     {
         this.accessors = accessors
-        this.proxyContainers = prototype[accessors.moduleSymbol]
         this.prototype = prototype
         if (! PrototypeExtension)
             PrototypeExtension = require("./prototype-extension")
         this.parentPrototypes = PrototypeExtension.__protochain__(prototype)
         this.extensions = []
-        this.proxy = new Proxy({}, { get: (target, name) => this.getMember(name) })
         this.staticReferences = {}
     }
 
@@ -45,26 +43,6 @@ module.exports = class ExtensionProxyContainer
 
     bindProxy(instance)
     {
-        this.instance = instance
-        return this.proxy
-    }
-
-    getMember(name)
-    {
-        if (this.staticReferences[name])
-            return this.staticReferences[name].bind(this.accessors, this.instance)
-        for (const prototype of this.parentPrototypes)
-        {
-            const method = ObjectExtension.onlyGetOwnAt(prototype,
-                this.accessors.moduleSymbol,
-                this.accessors.moduleToken,
-                this.accessors.accessorName,
-                "staticReferences",
-                name
-            )
-            if (method)
-                return method.bind(this.accessors, this.instance)
-        }
-        throw new Error(`"${this.prototype.constructor.name}" doesn't have a method "${name}" in its extensions.`)
+        return new ExtensionProxy(this, instance).proxy
     }
 }
