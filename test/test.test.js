@@ -98,3 +98,12 @@ test("Call with a different instance between the accessor and the method", t => 
     t.is(oString._.double(), "toto")
     t.is(accessor.double(), 42)
 })
+
+test("Add method before extending", t => {
+    class P {}
+    class Px {}
+    Px.lambda = (self) => `lambda: ${self.constructor.name}`
+    P._.extendWith(Px)
+
+    t.is(new P()._.lambda(), "lambda: P")
+})
