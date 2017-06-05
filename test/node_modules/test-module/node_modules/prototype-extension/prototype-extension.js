@@ -2,7 +2,7 @@
 
 const ObjectExtension = require("./object-extension")
 const ArrayExtension = require("./array-extension")
-const ExtensionProxyContainer = require("./extension-proxy-container")
+const ExtensionContainer = require("./extension-container")
 const { getModuleToken, getCallerModuleToken } = require("./module-token")
 
 const moduleSymbol = Symbol.for("prototype-extension")
@@ -19,7 +19,7 @@ class PrototypeExtension
         const prototype = classReference.prototype
         const moduleToken = getCleanModuleToken()
         let container = ObjectExtension.getOwnAt(prototype,
-            () => new ExtensionProxyContainer(prototype, { moduleSymbol, moduleToken, accessorName }),
+            () => new ExtensionContainer(prototype, { moduleSymbol, moduleToken, accessorName }),
             moduleSymbol, moduleToken, accessorName
         )
         container.addExtension(extension)
