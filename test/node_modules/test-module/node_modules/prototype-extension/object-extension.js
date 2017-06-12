@@ -59,6 +59,6 @@ module.exports = class ObjectExtension
         for (let i = 0; i < length; self = self[path[i++]])
             if (! self.hasOwnProperty(path[i]))
                 return
-        return self[path[length]]
+        return ! self.hasOwnProperty(path[length]) ? void 0 : self[path[length]]
     }
 }

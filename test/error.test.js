@@ -85,21 +85,9 @@ test("Scoped prototype doesn't extends outside ones: Same extension names", t =>
 test("Can't find dynamically added methods", t => {
     class Dynami {}
     class DynamiX {}
-    try
-    {
-        Dynami._.extendWith(DynamiX)
-        DynamiX.dynamicMethod = function (self) { return "dynamicMethod" }
-        new Dynami()._.dynamicMethod()
-        t.fail()
-    }
-    catch (error)
-    {
-        const expectedError = `Error: "Dynami" doesn't have a method "dynamicMethod" in its extensions.`
-        if (error.toString() == expectedError)
-            t.pass()
-        else
-            t.fail(`value   : ${error}\nexpected: ${expectedError}`)
-    }
+    Dynami._.extendWith(DynamiX)
+    DynamiX.dynamicMethod = function (self) { return "dynamicMethod" }
+    t.is(new Dynami()._.dynamicMethod, void 0)
 })
 
 test("Extension method is unavailable after unextendwith", t => {
@@ -109,19 +97,7 @@ test("Extension method is unavailable after unextendwith", t => {
     K._.extendWith(Kx)
     t.is(new K()._.methodK(), "K: Kx")
     K._.unextendWith(Kx)
-    try
-    {
-        t.is(new K()._.methodK, void 0)
-        t.fail()
-    }
-    catch (error)
-    {
-        const expectedError = `Error: "K" doesn't have a method "methodK" in its extensions.`
-        if (error.toString() == expectedError)
-            t.pass()
-        else
-            t.fail(`value   : ${error}\nexpected: ${expectedError}`)
-    }
+    t.is(new K()._.methodK, void 0)
 })
 
 test("Extension class is unavailable after unextendwith", t => {

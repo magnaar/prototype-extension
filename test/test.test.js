@@ -107,3 +107,9 @@ test("Add method before extending", t => {
 
     t.is(new P()._.lambda(), "lambda: P")
 })
+
+test("Add extension on an instance", t => {
+    class Sx { static repeat(self) { return self + self } }
+    ""._.extendWith(Sx)
+    t.is("Tom"._.repeat(), "TomTom")
+})

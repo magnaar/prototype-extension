@@ -1,5 +1,6 @@
 'use strict'
 
+const path = require('path')
 const fs = require("fs")
 const version = require("./package.json").version
 const ObjectExtension = require("./object-extension")
@@ -18,7 +19,7 @@ class PrototypeExtension
     static extendWith(classReference, extension, accessorName="")
     {
         const moduleToken = getCleanModuleToken()
-        accessorName = accessorName || getAccessorNameFromConfig() || "_"
+        accessorName = accessorName || getAccessorNameFromConfig(moduleToken) || "_"
         const prototype = classReference.prototype
         let container = ObjectExtension.getOwnAt(prototype,
             () => new ExtensionContainer(prototype, { moduleSymbol, moduleToken, accessorName }),
@@ -73,12 +74,17 @@ class PrototypeExtension
 
 function getCleanModuleToken()
 {
-    return getCallerModuleToken(1).replace("\\prototype-extension", "")
+    return getCallerModuleToken(1)
+        .replace(path.sep === "/"
+            ? "/node_modules/prototype-extension"
+            : "\\node_modules\\prototype-extension"
+            , ""
+        )
 }
 
-function getAccessorNameFromConfig()
+function getAccessorNameFromConfig(modulePath)
 {
-    const path = process.cwd() + "/package.json"
+    const path = modulePath + "/package.json"
     return fs.existsSync(path)
         && ObjectExtension.onlyGetAt(require(path),
             "prototype-extension",
@@ -92,13 +98,14 @@ function propertyBuilder(prototype, accessorName)
         enumerable: false,
         get: function ()
         {
+            let container
             return this.hasOwnProperty(accessorName)
                 ? this[accessorName]
-                : ObjectExtension.onlyGetOwnAt(prototype,
+                : (container = ObjectExtension.onlyGetOwnAt(prototype,
                     moduleSymbol,
                     getCleanModuleToken(),
                     accessorName
-                ).bindProxy(this)
+                )) && container.bindProxy(this)
         },
         set: function(value)
         {

@@ -28,6 +28,7 @@ module.exports = class ExtensionProxy
             if (method)
                 return method.bind(container.accessors, this.instance)
         }
-        throw new Error(`"${container.prototype.constructor.name}" doesn't have a method "${name}" in its extensions.`)
+        //throw new Error(`"${container.prototype.constructor.name}" doesn't have a method "${name}" in its extensions.`)
+        return undefined
     }
 }
