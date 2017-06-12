@@ -1,4 +1,4 @@
-**prototype-extension** 0.2.0
+**prototype-extension** 0.2.1
 =================
 ###_Extension methods brought to javascript_
 
@@ -38,6 +38,27 @@ It won't affect the other modules, neither the ones which import yours.
 
 console.log(typeof "42"._.toInt()) // => number
 ```
+
+##**Choose your accessor name**
+Go into your package.json
+and add this section:
+```
+{
+    /* Your package.json stuff */
+    "prototype-extension": {
+        "accessor": "$$"
+    },
+    /* Your other package.json stuff */
+}
+```
+
+Now, the default accessor will be "$$" in your module.
+```
+"".$$.extendWith(StringExtension)
+"123".$$.toInt()
+```
+
+It's useful to avoid conflicts with lodash and underscore.
 
 ##**See which extensions are accessibles**
 ```
