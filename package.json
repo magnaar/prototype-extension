@@ -1,6 +1,6 @@
 {
   "name": "prototype-extension",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Extension method in javascript without polluting prototypes",
   "main": "prototype-extension.js",
   "keywords": [

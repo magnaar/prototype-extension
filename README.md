@@ -1,4 +1,4 @@
-**prototype-extension** 0.2.1
+**prototype-extension** 0.2.2
 =================
 ###_Extension methods brought to javascript_
 
@@ -24,6 +24,8 @@ const PrototypeExtension = require("prototype-extension")
 const StringExtension = require("./string-extension")
 
 String._.extendWith(StringExtension)
+// This can work too:
+// ""._.extendWith(StringExtension)
 ```
 It will allow you to use the StringExtension methods on every string of your module.
 It won't affect the other modules, neither the ones which import yours.
