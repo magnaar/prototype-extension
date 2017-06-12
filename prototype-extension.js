@@ -20,7 +20,7 @@ class PrototypeExtension
     {
         const moduleToken = getCleanModuleToken()
         accessorName = accessorName || getAccessorNameFromConfig(moduleToken) || "_"
-        const prototype = classReference.prototype
+        const prototype = classReference.prototype || classReference.__proto__
         let container = ObjectExtension.getOwnAt(prototype,
             () => new ExtensionContainer(prototype, { moduleSymbol, moduleToken, accessorName }),
             moduleSymbol, moduleToken, accessorName
