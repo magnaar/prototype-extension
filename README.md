@@ -54,7 +54,7 @@ and add this section:
 
 Now, the default accessor will be "$$" in your module.
 ```
-"".$$.extendWith(StringExtension)
+String.$$.extendWith(StringExtension)
 "123".$$.toInt()
 ```
 
